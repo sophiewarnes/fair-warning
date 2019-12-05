@@ -63,7 +63,10 @@
         allow_download: true,
         csv_options: {separator: ',', delimiter: '"'},
         datatables_options: {"paging": true,
-        "autowidth": true},
+        "autowidth": true,
+        "columnDefs": [
+      { "width": "600px", "targets": 0 }
+    ]},
         custom_formatting: [[3, format_link]]
       });
     </script>
