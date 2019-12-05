@@ -62,12 +62,8 @@
         element: 'table-container',
         allow_download: true,
         csv_options: {separator: ',', delimiter: '"'},
-        datatables_options: {"paging": false,
-        "autowidth": false,
-        "columnDefs": [
-          { "width": "20%", "targets": 0 }
-        ]
-      },
+        datatables_options: {"paging": true,
+        "autowidth": true},
         custom_formatting: [[3, format_link]]
       });
     </script>
