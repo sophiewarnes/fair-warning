@@ -1,0 +1,219 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import requests\n",
+    "from bs4 import BeautifulSoup\n",
+    "import csv\n",
+    "import codecs\n",
+    "import re"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "metadata": {},
+   "outputs": [
+    {
+     "ename": "FileNotFoundError",
+     "evalue": "[Errno 2] No such file or directory: 'data/trust-links.csv'",
+     "output_type": "error",
+     "traceback": [
+      "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+      "\u001b[0;31mFileNotFoundError\u001b[0m                         Traceback (most recent call last)",
+      "\u001b[0;32m<ipython-input-15-984967d4ae4c>\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m      8\u001b[0m \u001b[0;31m# Read the file\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      9\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 10\u001b[0;31m \u001b[0mlines\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mopen\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m'data/trust-links.csv'\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m'r'\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mread\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m",
+      "\u001b[0;31mFileNotFoundError\u001b[0m: [Errno 2] No such file or directory: 'data/trust-links.csv'"
+     ]
+    }
+   ],
+   "source": [
+    "## Obtain list of all EnglandNHS Trusts, and their URLs\n",
+    "\n",
+    "r = requests.get(\"https://www.nhs.uk/servicedirectories/pages/nhstrustlisting.aspx\")\n",
+    "soup = BeautifulSoup(r.content)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "metadata": {},
+   "outputs": [
+    {
+     "ename": "FileNotFoundError",
+     "evalue": "[Errno 2] No such file or directory: './data/trust-links.csv'",
+     "output_type": "error",
+     "traceback": [
+      "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+      "\u001b[0;31mFileNotFoundError\u001b[0m                         Traceback (most recent call last)",
+      "\u001b[0;32m<ipython-input-12-06f63cb67007>\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m      3\u001b[0m \u001b[0;31m# Read the file\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      4\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 5\u001b[0;31m \u001b[0mlines\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mopen\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m'./data/trust-links.csv'\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m'r'\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mread\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      6\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      7\u001b[0m \u001b[0;31m# Open CSV file we're going to append data to...\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+      "\u001b[0;31mFileNotFoundError\u001b[0m: [Errno 2] No such file or directory: './data/trust-links.csv'"
+     ]
+    }
+   ],
+   "source": [
+    "## Scrape the URL pull out all the links, excluding tinyletter links\n",
+    "\n",
+    "# Read the file\n",
+    "\n",
+    "lines = open('./data/trust-links.csv', 'r').read()\n",
+    "\n",
+    "# Open CSV file we're going to append data to...\n",
+    "with open('./data/trust-links.csv','a') as csvfile:\n",
+    "    csv_output = csv.writer(csvfile)\n",
+    "    \n",
+    "    # Find all links where 'Fair Warning' is in the title at the beginning, and extract the href (URL)\n",
+    "    links = soup.find_all('a')\n",
+    "    \n",
+    "    # For every link found that matches the regex, add http and domain\n",
+    "    for link in links:\n",
+    "        urls = link.get('href')\n",
+    "        urls = \"https://www.getrevue.co\" + urls\n",
+    "        \n",
+    "        if urls in lines:\n",
+    "            pass\n",
+    "        else:\n",
+    "            csv_output.writerow([urls])\n",
+    "            \n",
+    "print(\"Executed successfully! \\U0001F600\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "This may take a while... 🙃\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "New data incoming! 👍\n",
+      "\n",
+      "\n",
+      "Oh look, it's finished. Hurrah! 😀\n"
+     ]
+    }
+   ],
+   "source": [
+    "## Put all the data into a CSV file and clean all the nonsense up\n",
+    "\n",
+    "print(\"This may take a while... \\U0001F643\")\n",
+    "\n",
+    "lines = open('./data/fw-archive.csv', 'r').read()\n",
+    "\n",
+    "# Open URLs CSV, write title, link, date etc to URLS.csv\n",
+    "with open('./fw-scraper-files/URLs.csv','r') as csvfile, open('./data/fw-archive.csv', 'a', encoding='utf-8') as f_output:\n",
+    "    linkreader = csv.reader(csvfile, dialect=csv.excel)\n",
+    "    csv_output = csv.writer(f_output)\n",
+    "    for row in linkreader:\n",
+    "        URL = ', '.join(row)\n",
+    "        r = requests.get(URL)\n",
+    "        r.encoding = 'utf-8'\n",
+    "        soup = BeautifulSoup(r.text, \"html.parser\")\n",
+    "        issue = soup.find(\"h1\").text\n",
+    "        date = soup.find(\"time\").text\n",
+    "        links = soup.find_all(\"a\",{'style': re.compile('text-decoration: none')})\n",
+    "        for link in links:\n",
+    "            title = link.text\n",
+    "            title = title.strip()\n",
+    "            if title == \"\" or title == \"Tweet\" or title == \"Share\":\n",
+    "                # Do nothing\n",
+    "                pass\n",
+    "            else:\n",
+    "                issue = issue.replace('Fair Warning - ','')\n",
+    "                title = title\n",
+    "                link = link.get('href')\n",
+    "                link = link.strip()\n",
+    "                link = link.replace('?utm_campaign=Fair%20Warning&utm_medium=email&utm_source=Revue%20newsletter','')\n",
+    "                if link.startswith( 'http://rev.vu' ):\n",
+    "                    pass\n",
+    "                else:\n",
+    "                    data = [issue, date, title, link]\n",
+    "                    if title in lines:\n",
+    "                        pass\n",
+    "                    else:\n",
+    "                        print(\"New data incoming! \\U0001F44D\")\n",
+    "                        csv_output.writerow([issue,date,title,link])\n",
+    "                \n",
+    "print(\"\\n\\nOh look, it's finished. Hurrah! \\U0001F600\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.7.4"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
